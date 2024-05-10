@@ -5,15 +5,27 @@ import pandas as pd
 import numpy as np
 
 with st.sidebar:
-    selected = option_menu("Main Menu", ["DashBoard", 'MapView', 'Video Analysis', 'Victim Analysis', 'Feedback', 'Contact Us'], 
+    selected = option_menu("Main Menu", ['DashBoard', 'MapView', 'Video Analysis', 'Victim Analysis', 'Feedback', 'Contact Us' , 'Sign Up' , 'Sign In'], 
         icons=['bar-chart', 'radar', 'camera-reels', 'person-bounding-box', 'card-text', 'envelope-at'], menu_icon="cast", default_index=0,styles=
         {
-        "icon": {"font-size": "32px"}, 
-        "nav-link": {"font-size": "32px", "text-align": "left", "margin":"0px", "--hover-color": "#eee"},
-        "nav-link-selected": {"background-color": "green"}})
+        "icon": {"font-size": "24px"}, 
+        "nav-link": {"font-size": "20px", "text-align": "left", "margin":"0px",  "--hover-color": "#48A6EE" , "margin-top" : "10px"},
+        "nav-link-selected": {"background-color": "#48A6EE" , "font-weight" : "100"}})
 
 
 if selected == 'DashBoard':
+
+    st.write(":house: / DashBoard")
+    cols = st.columns([0.7, 0.3])
+    with cols[0]:
+     st.write("**Dashboard**")
+    with cols[1]:
+        cols = st.columns(2)
+        with cols[0]:
+         st.markdown('<input style="width: 150px; height: 25px; outline: none; padding: 5px; border: 1px solid white ; border-radius: 5px; background-color: black;" type="text" placeholder="Search here">', unsafe_allow_html=True)
+       
+       
+
 
     cols = st.columns(4)
     with cols[0]:
