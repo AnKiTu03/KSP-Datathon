@@ -1,0 +1,4 @@
+[server]
+maxMessageSize = 300
+[deprecation]
+showPyplotGlobalUse = false
