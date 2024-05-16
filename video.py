@@ -1,71 +1,124 @@
 import streamlit as st
 import cv2
-import numpy as np
-from tensorflow.keras.models import load_model
-from tempfile import NamedTemporaryFile
+import os
+import shutil
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+gen_api = os.getenv('GEN_AI')
 
-CLASS_LABELS = ['Abuse', 'Arrest', 'Arson', 'Assault',
-                'Burglary', 'Explosion', 'Fighting',
-                'Normal', 'RoadAccidents', 'Robbery',
-                'Shooting', 'Shoplifting', 'Stealing',
-                'Vandalism']
+# Function to configure Google Generative AI
+def configure_genai(api_key):
+    genai.configure(api_key=api_key)
 
-def load_model_file(model_path='video_model.h5'):
-    return load_model(model_path)
+# Function to create or clean up existing extracted image frames directory
+def create_frame_output_dir(output_dir):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    else:
+        shutil.rmtree(output_dir)
+        os.makedirs(output_dir)
 
-def preprocess_frame(frame):
-
-    frame = cv2.resize(frame, (64, 64))  
-    frame = frame / 255.0  
-    frame = np.expand_dims(frame, axis=0)  
-    return frame
-
-def predict_on_video(video_path, model):
-
-    cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS)  # Get the frames per second of the video
-    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = frame_count / fps
-
-    all_predictions = []
-    current_frame = 0
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
+# Function to extract frames from video
+def extract_frame_from_video(video_file_path, frame_extraction_directory, frame_prefix):
+    create_frame_output_dir(frame_extraction_directory)
+    vidcap = cv2.VideoCapture(video_file_path)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    frame_duration = 1 / fps 
+    output_file_prefix = os.path.basename(video_file_path).replace('.', '_')
+    frame_count = 0
+    count = 0
+    while vidcap.isOpened():
+        success, frame = vidcap.read()
+        if not success:  
             break
-
-        if current_frame % int(fps) == 0:
-            processed_frame = preprocess_frame(frame)
-            prediction = model.predict(processed_frame)
-            all_predictions.append(prediction)
-
-        current_frame += 1
-
-    cap.release()
-
-    avg_prediction = np.mean(all_predictions, axis=0)
-    avg_class_index = np.argmax(avg_prediction)
-    avg_class_label = CLASS_LABELS[avg_class_index]
-    return avg_class_label
+        if int(count / fps) == frame_count: 
+            min = frame_count // 60
+            sec = frame_count % 60
+            time_string = f"{min:02d}:{sec:02d}"
+            image_name = f"{output_file_prefix}{frame_prefix}{time_string}.jpg"
+            output_filename = os.path.join(frame_extraction_directory, image_name)
+            cv2.imwrite(output_filename, frame)
+            frame_count += 1
+        count += 1
+    vidcap.release()
 
 def video_main():
-    st.title("Video Classification with ResNet50")
-    model = load_model_file()
+    st.title("Crime video analysis")
 
-    uploaded_file = st.file_uploader("Choose a video...", type=["mp4", "avi", "mov"])
+    gen_api = os.getenv('GEN_AI')
+    if gen_api:
+        configure_genai(gen_api)
 
-    if uploaded_file is not None:
-        with NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(uploaded_file.read())
-            temp_video_path = temp_file.name
+    video_file = st.file_uploader("Upload a video file:", type=["mp4", "avi", "mov"])
+    if video_file:
+        video_path = os.path.join("/tmp", video_file.name)
+        with open(video_path, 'wb') as f:
+            f.write(video_file.read())
+        st.video(video_path)
 
-        st.video(uploaded_file)
+        frame_extraction_directory = "/tmp/frames"
+        frame_prefix = "_frame"
+    
+        with st.spinner("Processing video..."):
+            extract_frame_from_video(video_path, frame_extraction_directory, frame_prefix)
 
-        if st.button("Predict"):
-            with st.spinner('Processing...'):
-                avg_class_label = predict_on_video(temp_video_path, model)
-            st.success(f"Most Likely Class Label: {avg_class_label}")
+        class File:
+            def __init__(self, file_path, response=None):
+                self.file_path = file_path
+                self.response = response
+        
+            def set_file_response(self, response):
+                self.response = response
+
+        files = os.listdir(frame_extraction_directory)
+        files = sorted(files)
+        files_to_upload = [File(os.path.join(frame_extraction_directory, file)) for file in files]
+
+        uploaded_files = []
+        with st.spinner("Processing video..."):
+            for file in files_to_upload:
+                response = genai.upload_file(path=file.file_path)
+                file.set_file_response(response)
+                uploaded_files.append(file)
+
+        prompt = "You are a crime scene investigator analyzing a crime scene.Describe the crime happeing in the video.Give me the deatiled report of the crime in 100-200 words dont include the date time location unless there is a clear idea about it.Keep it formal and professional."
+        if prompt:
+
+            safety_settings = [
+  {
+    "category": "HARM_CATEGORY_HARASSMENT",
+    "threshold": "BLOCK_NONE",
+  },
+  {
+    "category": "HARM_CATEGORY_HATE_SPEECH",
+    "threshold": "BLOCK_NONE",
+  },
+  {
+    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+    "threshold": "BLOCK_NONE",
+  },
+]
+        
+            model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest",safety_settings=safety_settings,)
+
+            def make_request(prompt, files):
+                request = [prompt]
+                for file in files:
+                    request.append(file.response)  # Use response attribute
+                return request
+
+            with st.spinner("Processing video..."):
+                request = make_request(prompt, uploaded_files)
+                response = model.generate_content(request, request_options={"timeout": 600})
+                st.markdown(f"""<div style="background-color: #dceefb; padding: 10px; border-radius: 5px; color: black;">{response.text}</div>""", unsafe_allow_html=True)
 
 
+            with st.spinner("Processing video..."):
+                for file in uploaded_files:
+                    genai.delete_file(file.response.name)
+
+if __name__ == '__main__':
+    video_main()

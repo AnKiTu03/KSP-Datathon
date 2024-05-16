@@ -11,7 +11,7 @@ access_id = os.getenv('AWS_ACCESS_KEY_ID')
 secret_id = os.getenv('AWS_SECRET_ACCESS_KEY')
 region_name = os.getenv('AWS_REGION')
 
-@st.cache_data(experimental_allow_widgets=True) 
+@st.cache_data(experimental_allow_widgets=True, show_spinner=True) 
 def load_data_from_s3():
     session = boto3.Session(
         aws_access_key_id=access_id,
