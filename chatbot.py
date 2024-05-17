@@ -65,29 +65,10 @@ def trans(txt):
        return "Server Limit Exceeded"
 
  
-def load_data_from_s3():
-    load_dotenv()
-    access_id = os.getenv('AWS_ACCESS_KEY_ID')
-    secret_id = os.getenv('AWS_SECRET_ACCESS_KEY')
-    region_name = os.getenv('AWS_REGION')
-
-    # Initialize a session using Amazon S3
-    session = boto3.Session(
-        aws_access_key_id=access_id,
-        aws_secret_access_key=secret_id,
-        region_name=region_name
-    )
-    s3 = session.client('s3')
-
-    # Read the CSV file from S3
-    response = s3.get_object(Bucket='new-trail01', Key='FIR_Details_Data.csv')
-    file_content = response['Body'].read()
-    data = pd.read_csv(BytesIO(file_content))
-    return data
 
 
-def chat_with_data():
-    data =  load_data_from_s3()
+def chat_with_data(data):
+    data =  data
     pandasai_api_key = os.getenv('PANDASAI_API_KEY')
     os.environ['PANDASAI_API_KEY'] = pandasai_api_key
    
