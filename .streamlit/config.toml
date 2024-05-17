@@ -1,4 +1,7 @@
 [server]
 maxMessageSize = 300
+headless = true
+port = 8501
+enableCORS = false
 [deprecation]
 showPyplotGlobalUse = false
