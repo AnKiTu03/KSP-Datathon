@@ -10,7 +10,7 @@ def init_firebase():
         app = get_app()
     except ValueError as e:
         # If no app is initialized yet, initialize one
-        cred = credentials.Certificate('datathon-ksp-firebase-adminsdk-bq5gw-01aa144764.json')
+        cred = credentials.Certificate('datathon-ksp-firebase-adminsdk-bq5gw-c742dc8077.json')
         app = initialize_app(cred)
     return firestore.client(app)
 
