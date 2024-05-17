@@ -21,8 +21,7 @@ def load_model(district):
         st.error(f"No pre-trained model found for {district}.")
         return None
 
-# Function to prepare data for a specific district
-@st.cache_data()
+
 def prepare_data(data, district_name):
     district_data = data[data['UnitName'] == district_name]
     district_data['Offence_From_Date'] = pd.to_datetime(district_data['Offence_From_Date'])
@@ -45,12 +44,9 @@ def plot_forecast(forecast, title):
     st.pyplot(fig)
 
 # Main function to run Streamlit app
-def forecast_main():
-    bucket_name = 'new-trail01'
-    file_key = 'FIR_Details_Data.csv'
+def forecast_main(data):
     
-    with st.spinner('Loading data from S3...'):
-        data = load_data_from_s3(bucket_name, file_key)
+    data = data
         
     st.title('District-Wise Crime Rate Prediction using Facebook Prophet')
 
