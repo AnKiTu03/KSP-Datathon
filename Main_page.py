@@ -34,6 +34,11 @@ def load_data_from_s3(bucket_name, file_key):
     data = pd.read_csv(BytesIO(file_content))
     return data
 
+bucket_name = 'new-trail01'
+file_key = 'AccusedData.csv'
+    
+data = load_data_from_s3(bucket_name, file_key)
+    
 with st.sidebar:
     selected = option_menu("Main Menu", ['DashBoard', 'MapView', 'Video Analysis', 'Victim Analysis','Forecast','chatbot', 'Feedback', 'Sign Up' , 'Sign In'], 
         icons=['bar-chart', 'radar', 'camera-reels', 'person-bounding-box','graph-up-arrow','chat-left-dots-fill','card-text', 'envelope-at'], menu_icon="cast", default_index=0,styles=
@@ -43,10 +48,7 @@ with st.sidebar:
         "nav-link-selected": {"background-color": "#48A6EE" , "font-weight" : "100"}})
 
 def Dashboard():
-    bucket_name = 'new-trail01'
-    file_key = 'AccusedData.csv'
-    
-    df = load_data_from_s3(bucket_name, file_key)
+    df = data
 
     df_filtered_age = df[(df['age'] > 16) & (df['age'] < 60)]
     crime_pivot = pd.pivot_table(df_filtered_age, values='FIRNo', index='District_Name', columns='age', aggfunc='count', fill_value=0)
@@ -97,19 +99,19 @@ if selected == 'DashBoard':
 
 
 elif selected == 'MapView':
-    patrolling_main()
+    patrolling_main(data)
 
 elif selected == 'Victim Analysis':
-    Victim_main()
+    Victim_main(data)
 
 elif selected == 'Forecast':
-    forecast_main()
+    forecast_main(data)
 
 elif selected == 'Video Analysis':
-    video_main()
+    video_main(data)
 
 elif selected == 'Feedback':
-    feedback_main()
+    feedback_main(data)
 
 elif selected == 'chatbot':
-    chat_with_data()
+    chat_with_data(data)
