@@ -7,24 +7,9 @@ import boto3
 from dotenv import load_dotenv
 from io import BytesIO
 
-# Load environment variables
-load_dotenv()
-access_id = os.getenv('AWS_ACCESS_KEY_ID')
-secret_id = os.getenv('AWS_SECRET_ACCESS_KEY')
-region_name = os.getenv('AWS_REGION')
 
 
-def load_data_from_s3(bucket_name, file_key):
-    session = boto3.Session(
-        aws_access_key_id=access_id,
-        aws_secret_access_key=secret_id,
-        region_name=region_name
-    )
-    s3 = session.client('s3')
-    response = s3.get_object(Bucket=bucket_name, Key=file_key)
-    file_content = response['Body'].read()
-    data = pd.read_csv(BytesIO(file_content))
-    return data
+
 
 # Function to load pre-trained model
 @st.cache_resource()
