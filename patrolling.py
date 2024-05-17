@@ -16,7 +16,7 @@ secret_id = os.getenv('AWS_SECRET_ACCESS_KEY')
 region_name = os.getenv('AWS_REGION')
 
 
-@st.cache_data(show_spinner=True)
+
 def load_data():
     session = boto3.Session(
         aws_access_key_id=access_id,
@@ -60,7 +60,7 @@ def visualize_clusters(df, centers):
 
     return map
 
-@st.cache_resource(experimental_allow_widgets=True)
+
 def patrolling_main():
     st.title('Patrolling Map')
     df = load_data()
