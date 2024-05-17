@@ -64,7 +64,7 @@ def trans(txt):
    else:
        return "Server Limit Exceeded"
 
-@st.cache_data(show_spinner=True)   
+ 
 def load_data_from_s3():
     load_dotenv()
     access_id = os.getenv('AWS_ACCESS_KEY_ID')
