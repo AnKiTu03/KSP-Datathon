@@ -4,7 +4,6 @@ import streamlit_shadcn_ui as ui
 import pandas as pd
 import plotly.express as px
 from patrolling import patrolling_main
-from victim import Victim_main
 from forecast import forecast_main
 from video import video_main
 from feedback import feedback_main
