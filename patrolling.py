@@ -16,25 +16,6 @@ secret_id = os.getenv('AWS_SECRET_ACCESS_KEY')
 region_name = os.getenv('AWS_REGION')
 
 
-
-def load_data():
-    session = boto3.Session(
-        aws_access_key_id=access_id,
-        aws_secret_access_key=secret_id,
-        region_name=region_name
-)
-
-    s3 = session.client('s3')
-    bucket_name = 'new-trail01'
-    file_key = 'FIR_Details_Data.csv'
-
-    response = s3.get_object(Bucket=bucket_name, Key=file_key)
-    file_content = response['Body'].read()
-    data = pd.read_csv(BytesIO(file_content))
-    data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
-    data = data.drop_duplicates(subset=['Latitude', 'Longitude', 'CrimeHead_Name'])
-    return data
-
 def apply_kmeans(df, n_clusters=10):
     kmeans = KMeans(n_clusters=n_clusters, random_state=0)
     df['cluster'] = kmeans.fit_predict(df[['Latitude', 'Longitude']])
@@ -61,9 +42,10 @@ def visualize_clusters(df, centers):
     return map
 
 
-def patrolling_main():
+def patrolling_main(data):
     st.title('Patrolling Map')
-    df = load_data()
+    data.dropna(subset=['Latitude', 'Longitude'], inplace=True)
+    df = data.drop_duplicates(subset=['Latitude', 'Longitude', 'CrimeHead_Name'])
     clusters = st.slider('Select number of clusters', min_value=3, max_value=20, value=10, step=1)
     df, centers = apply_kmeans(df, clusters)
     crime_map = visualize_clusters(df, centers)
