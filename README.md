@@ -48,5 +48,5 @@ Contributions are welcome! Please follow these guidelines:
 4. Submit a pull request to the main branch.
 
 ## Demo Video 
-(Click Here to View)[https://youtu.be/GaFgAcWDsK4]
+[![Watch the video](https://img.youtube.com/vi/GaFgAcWDsK4/0.jpg)](https://www.youtube.com/watch?v=GaFgAcWDsK4)
 
